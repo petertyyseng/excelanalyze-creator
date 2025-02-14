@@ -6,10 +6,12 @@ import { DataSummary } from '@/components/DataSummary';
 import { RelationshipDefiner } from '@/components/RelationshipDefiner';
 import { FileData, Relationship } from '@/types/data';
 import { useToast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [files, setFiles] = useState<FileData[]>([]);
   const [relationships, setRelationships] = useState<Relationship[]>([]);
+  const [showRelationships, setShowRelationships] = useState(false);
   const { toast } = useToast();
 
   const handleFilesAccepted = (newFiles: FileData[]) => {
@@ -24,6 +26,18 @@ const Index = () => {
     });
   };
 
+  const handleContinue = () => {
+    if (files.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please upload at least one file before continuing",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowRelationships(true);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto py-12 px-4 space-y-8">
@@ -34,9 +48,16 @@ const Index = () => {
           </p>
         </div>
 
-        {files.length === 0 ? (
-          <div className="max-w-2xl mx-auto">
+        {!showRelationships ? (
+          <div className="max-w-2xl mx-auto space-y-6">
             <FileUpload onFilesAccepted={handleFilesAccepted} />
+            {files.length > 0 && (
+              <div className="flex justify-end mt-4">
+                <Button onClick={handleContinue}>
+                  Continue to Define Relationships
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-8">

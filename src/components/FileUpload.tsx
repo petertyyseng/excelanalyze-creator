@@ -1,11 +1,12 @@
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, AlertCircle } from 'lucide-react';
+import { Upload, File, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { FileData } from '@/types/data';
 import { v4 as uuidv4 } from 'uuid';
 import * as XLSX from 'xlsx';
+import { Button } from '@/components/ui/button';
 
 interface FileUploadProps {
   onFilesAccepted: (files: FileData[]) => void;
@@ -65,6 +66,13 @@ export const FileUpload = ({ onFilesAccepted, maxFiles = 3 }: FileUploadProps) =
     }
   }, [maxFiles, onFilesAccepted, uploadedFiles]);
 
+  const removeFile = (fileId: string) => {
+    const newFiles = uploadedFiles.filter(file => file.id !== fileId);
+    setUploadedFiles(newFiles);
+    onFilesAccepted(newFiles);
+    toast.success('File removed successfully');
+  };
+
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: {
@@ -78,40 +86,54 @@ export const FileUpload = ({ onFilesAccepted, maxFiles = 3 }: FileUploadProps) =
   });
 
   return (
-    <div
-      {...getRootProps()}
-      className={`drop-zone ${isDragging ? 'dragging' : ''}`}
-    >
-      <input {...getInputProps()} />
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center">
-          <Upload className="w-8 h-8 text-gray-400" />
+    <div className="space-y-6">
+      <div
+        {...getRootProps()}
+        className={`drop-zone ${isDragging ? 'dragging' : ''} border-2 border-dashed border-gray-300 rounded-lg p-8 hover:border-gray-400 transition-colors`}
+      >
+        <input {...getInputProps()} />
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center">
+            <Upload className="w-8 h-8 text-gray-400" />
+          </div>
+          <div className="text-center">
+            <h3 className="text-lg font-medium text-gray-900">
+              Drop your Excel files here
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              or click to browse (max {maxFiles} files)
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <File className="w-4 h-4" />
+            <span>Accepts .xlsx and .xls files</span>
+          </div>
         </div>
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-900">
-            Drop your Excel files here
-          </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            or click to browse (max {maxFiles} files)
+      </div>
+
+      {uploadedFiles.length > 0 && (
+        <div className="bg-white p-4 rounded-lg shadow-sm">
+          <h4 className="font-medium mb-3">Uploaded Files:</h4>
+          <ul className="space-y-2">
+            {uploadedFiles.map((file) => (
+              <li key={file.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                <span className="text-sm text-gray-600">{file.name}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeFile(file.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </li>
+            ))}
+          </ul>
+          <p className="text-sm text-gray-500 mt-2">
+            {uploadedFiles.length} of {maxFiles} files uploaded
           </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <File className="w-4 h-4" />
-          <span>Accepts .xlsx and .xls files</span>
-        </div>
-        {uploadedFiles.length > 0 && (
-          <div className="mt-4">
-            <h4 className="font-medium mb-2">Uploaded Files:</h4>
-            <ul className="space-y-1">
-              {uploadedFiles.map((file) => (
-                <li key={file.id} className="text-sm text-gray-600">
-                  {file.name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };
