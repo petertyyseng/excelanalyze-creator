@@ -5,6 +5,7 @@ import { Upload, File, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { FileData } from '@/types/data';
 import { v4 as uuidv4 } from 'uuid';
+import * as XLSX from 'xlsx';
 
 interface FileUploadProps {
   onFilesAccepted: (files: FileData[]) => void;
