@@ -23,7 +23,7 @@ export const FileUpload = ({ onFilesAccepted, maxFiles = 3 }: FileUploadProps) =
       reader.onload = async (e) => {
         try {
           const buffer = e.target?.result;
-          const workbook = XLSX.read(buffer);
+          const workbook = XLSX.read(buffer, { type: 'array' });
           const worksheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(worksheet);
           
