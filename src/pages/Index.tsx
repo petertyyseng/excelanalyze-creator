@@ -3,39 +3,25 @@ import { useState } from 'react';
 import { FileUpload } from '@/components/FileUpload';
 import { DataPreview } from '@/components/DataPreview';
 import { DataSummary } from '@/components/DataSummary';
-import * as XLSX from 'xlsx';
+import { RelationshipDefiner } from '@/components/RelationshipDefiner';
+import { FileData, Relationship } from '@/types/data';
 import { useToast } from '@/components/ui/use-toast';
 
 const Index = () => {
-  const [data, setData] = useState<any[]>([]);
-  const [columns, setColumns] = useState<string[]>([]);
+  const [files, setFiles] = useState<FileData[]>([]);
+  const [relationships, setRelationships] = useState<Relationship[]>([]);
   const { toast } = useToast();
 
-  const handleFile = async (file: File) => {
-    try {
-      const buffer = await file.arrayBuffer();
-      const workbook = XLSX.read(buffer);
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
-      
-      if (jsonData.length === 0) {
-        toast({
-          title: "Error",
-          description: "The Excel file appears to be empty",
-          variant: "destructive",
-        });
-        return;
-      }
+  const handleFilesAccepted = (newFiles: FileData[]) => {
+    setFiles(newFiles);
+  };
 
-      setData(jsonData);
-      setColumns(Object.keys(jsonData[0]));
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to process the Excel file",
-        variant: "destructive",
-      });
-    }
+  const handleRelationshipsDefined = (newRelationships: Relationship[]) => {
+    setRelationships(newRelationships);
+    toast({
+      title: "Success",
+      description: "Relationships have been defined successfully",
+    });
   };
 
   return (
@@ -44,18 +30,27 @@ const Index = () => {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h1 className="text-4xl font-bold mb-4">Excel Analyzer</h1>
           <p className="text-gray-600">
-            Upload your Excel file and get instant insights
+            Upload your Excel files and define relationships between them
           </p>
         </div>
 
-        {!data.length ? (
+        {files.length === 0 ? (
           <div className="max-w-2xl mx-auto">
-            <FileUpload onFileAccepted={handleFile} />
+            <FileUpload onFilesAccepted={handleFilesAccepted} />
           </div>
         ) : (
           <div className="space-y-8">
-            <DataSummary data={data} columns={columns} />
-            <DataPreview data={data} columns={columns} />
+            <RelationshipDefiner 
+              files={files}
+              onRelationshipsDefined={handleRelationshipsDefined}
+            />
+            {files.map((file) => (
+              <div key={file.id} className="space-y-8">
+                <h2 className="text-2xl font-semibold">{file.name}</h2>
+                <DataSummary data={file.data} columns={file.columns} />
+                <DataPreview data={file.data} columns={file.columns} />
+              </div>
+            ))}
           </div>
         )}
       </div>
