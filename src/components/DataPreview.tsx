@@ -23,6 +23,8 @@ interface DataPreviewProps {
   columns: string[];
 }
 
+type DataRow = Record<string, any>;
+
 export const DataPreview = ({ data, columns }: DataPreviewProps) => {
   const [selectedField, setSelectedField] = useState<string>('');
   const [summaryType, setSummaryType] = useState<'sum' | 'count' | 'average'>('count');
@@ -43,7 +45,7 @@ export const DataPreview = ({ data, columns }: DataPreviewProps) => {
   const filteredData = useMemo(() => {
     if (!selectedField) return data.slice(0, 5);
     
-    let filtered = [...data];
+    let filtered = [...data] as DataRow[];
     
     if (date?.from && date?.to && dateColumns.length > 0) {
       filtered = filtered.filter(row => {
@@ -58,12 +60,12 @@ export const DataPreview = ({ data, columns }: DataPreviewProps) => {
   const summaryData = useMemo(() => {
     if (!selectedField) return [];
 
-    const grouped = filteredData.reduce((acc, row) => {
+    const grouped = (filteredData as DataRow[]).reduce((acc, row) => {
       const key = row[selectedField];
       if (!acc[key]) acc[key] = [];
       acc[key].push(row);
       return acc;
-    }, {} as Record<string, any[]>);
+    }, {} as Record<string, DataRow[]>);
 
     return Object.entries(grouped).map(([key, values]) => {
       let value = 0;
@@ -72,7 +74,9 @@ export const DataPreview = ({ data, columns }: DataPreviewProps) => {
           value = values.reduce((sum, row) => sum + (Number(row[selectedField]) || 0), 0);
           break;
         case 'average':
-          value = values.reduce((sum, row) => sum + (Number(row[selectedField]) || 0), 0) / values.length;
+          value = values.length > 0 
+            ? values.reduce((sum, row) => sum + (Number(row[selectedField]) || 0), 0) / values.length 
+            : 0;
           break;
         case 'count':
         default:
